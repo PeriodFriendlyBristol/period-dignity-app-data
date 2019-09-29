@@ -1,7 +1,17 @@
-def get_place_ids(query):
+def get_place_ids(query, api_key):
+    ''' From a string query and Google Maps API key, get the place IDs. 
+    
+    INPUT
+        query
+            Query string
+        api_key
+            Google Maps API key
+    
+    OUTPUT
+        List of place IDs
+    '''
     import json
     import requests
-    api_key = 'AIzaSyBRg0Viw0CUaZPVTmx-Yg8SRRAHBnjE0xg'
     url = 'https://maps.googleapis.com/maps/api/place/'\
             f'findplacefromtext/json?key={api_key}'\
             f'&inputtype=textquery&region=uk&input={query}'
@@ -9,17 +19,30 @@ def get_place_ids(query):
     candidates = json_data['candidates']
     return [candidate['place_id'] for candidate in candidates]
     
-def get_place_data(query):
+def get_place_data(query, api_key):
+    ''' From a string query and Google Maps API key, get the place data. 
+    
+    INPUT
+        query
+            Query string
+        api_key
+            Google Maps API key
+    
+    OUTPUT
+        Dictionary containing name, premise, street_name, street_number,
+        cite, postcode, phone, lat, lng, mon_open, mon_close, tue_open,
+        tue_close, wed_open, wed_close, thu_open, thu_close, fri_open,
+        fri_close, sat_open, sat_close, sun_open and sun_close
+    '''
     import json
     import requests
     import re
 
-    place_ids = get_place_ids(query)
+    place_ids = get_place_ids(query, api_key)
     if not place_ids:
         return None
     place_id = place_ids[0]
 
-    api_key = 'AIzaSyBRg0Viw0CUaZPVTmx-Yg8SRRAHBnjE0xg'
     url = 'https://maps.googleapis.com/maps/api/place/'\
             f'details/json?key={api_key}'\
             f'&place_id={place_id}'
@@ -84,7 +107,13 @@ def get_place_data(query):
 
     return data
 
-def populate_sheet(file_name):
+def populate_sheet(file_name, api_key):
+    ''' Populate a sheet with values.
+
+    INPUT
+        file_name
+            Sheet file name
+    '''
     import pandas as pd
     from tqdm import trange
 
@@ -106,7 +135,7 @@ def populate_sheet(file_name):
                 clean(df.loc[row, 'ADDRESS3']) + \
                 clean(df.loc[row, 'POSTCODE']) + \
                 clean(df.loc[row, 'CITY'])
-        data = get_place_data(query)
+        data = get_place_data(query, api_key)
 
         if data:
             if data['name']:
@@ -151,6 +180,11 @@ def populate_sheet(file_name):
     df.to_csv(file_name + '_modified.csv', header = True, index = False)
 
 if __name__ == '__main__':
-    populate_sheet('community_centres')
-    populate_sheet('gps')
-    populate_sheet('foodbanks')
+
+    # Change this to your own API key. Get one here:
+    # https://developers.google.com/places/web-service/get-api-key
+    api_key = ''
+
+    populate_sheet('community_centres', api_key = api_key)
+    populate_sheet('gps', api_key = api_key)
+    populate_sheet('foodbanks', api_key = api_key)
